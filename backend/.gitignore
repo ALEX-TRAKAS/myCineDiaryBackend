@@ -1,0 +1,54 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+/bin/
+/build/
+/dist/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# Dependency directories (if used)
+vendor/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# Coverage & profiling
+coverage.out
+*.coverprofile
+*.prof
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Migrations state (optional)
+*.lock
+
+# Temporary files
+tmp/
+temp/
