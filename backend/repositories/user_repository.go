@@ -1,33 +1,42 @@
 package repositories
 
 import (
+	"database/sql"
+	"errors"
+
 	"mycinediarybackend/database"
 	"mycinediarybackend/models"
 )
 
 func CreateUser(user *models.User) error {
 	query := `
-		INSERT INTO users (name, email)
-		VALUES ($1, $2)
+		INSERT INTO users (username, email, password_hash)
+		VALUES ($1, $2, $3)
 		RETURNING id
 	`
 
-	return database.DB.
-		QueryRow(query, user.Username, user.Email).
+	err := database.DB.
+		QueryRow(query, user.Username, user.Email, user.PasswordHash).
 		Scan(&user.ID)
+
+	return err
 }
 
-func GetUserByID(id int64) (*models.User, error) {
+func GetUserByEmail(email string) (*models.User, error) {
 	query := `
-		SELECT id, name, email
+		SELECT id, username, email, password_hash
 		FROM users
-		WHERE id = $1
+		WHERE email = $1
 	`
 
 	var user models.User
 	err := database.DB.
-		QueryRow(query, id).
-		Scan(&user.ID, &user.Username, &user.Email)
+		QueryRow(query, email).
+		Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.New("invalid credentials")
+	}
 
 	if err != nil {
 		return nil, err

@@ -9,6 +9,6 @@ func CreateUser(user *models.User) error {
 	return repositories.CreateUser(user)
 }
 
-func GetUser(id int64) (*models.User, error) {
-	return repositories.GetUserByID(id)
+func GetUser(email string) (*models.User, error) {
+	return repositories.GetUserByEmail(email)
 }

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"strconv"
 
 	"mycinediarybackend/models"
 	"mycinediarybackend/services"
@@ -28,14 +27,14 @@ func CreateUser(c echo.Context) error {
 }
 
 func GetUser(c echo.Context) error {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
+	email := c.Param("email")
+	if email == "" {
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error": "Invalid ID",
+			"error": "Email parameter is required",
 		})
 	}
 
-	user, err := services.GetUser(id)
+	user, err := services.GetUser(email)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{
 			"error": "User not found",

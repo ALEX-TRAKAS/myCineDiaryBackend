@@ -11,4 +11,7 @@ func RegisterRoutes(e *echo.Echo) {
 
 	api.POST("/users", handlers.CreateUser)
 	api.GET("/users/:id", handlers.GetUser)
+	api.POST("/auth/register", handlers.Register)
+	api.POST("/auth/login", handlers.Login)
+
 }
