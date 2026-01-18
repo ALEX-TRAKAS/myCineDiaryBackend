@@ -21,6 +21,15 @@ func AddUserMovie(userMovie *models.UserMovie) error {
 	return err
 }
 
+func RemoveUserMovie(userID uint64, tmdbMovieID int) error {
+	query := `
+		DELETE FROM user_movies
+		WHERE user_id = $1 AND tmdb_movie_id = $2
+	`
+	_, err := database.DB.Exec(query, userID, tmdbMovieID)
+	return err
+}
+
 func AddUserSeries(userSeries *models.UserSeries) error {
 	query := `
 		INSERT INTO user_series (user_id, tmdb_series_id, watched_at, rating, progress)
@@ -34,6 +43,15 @@ func AddUserSeries(userSeries *models.UserSeries) error {
 		userSeries.Rating,
 		userSeries.Progress,
 	)
+	return err
+}
+
+func RemoveUserSeries(userID uint64, tmdbSeriesID int) error {
+	query := `
+		DELETE FROM user_series
+		WHERE user_id = $1 AND tmdb_series_id = $2
+	`
+	_, err := database.DB.Exec(query, userID, tmdbSeriesID)
 	return err
 }
 
