@@ -14,8 +14,10 @@ func RegisterRoutes(e *echo.Echo) {
 	api.POST("/auth/register", handlers.Register)
 	api.POST("/auth/login", handlers.Login)
 	api.POST("/user/movies", handlers.AddUserMovie)
+	api.GET("/user/movies/:user_id", handlers.GetUserMovies)
 	api.DELETE("/user/movies", handlers.RemoveUserMovie)
 	api.POST("/user/series", handlers.AddUserSeries)
+	api.GET("/user/series/:user_id", handlers.GetUserSeries)
 	api.DELETE("/user/series", handlers.RemoveUserSeries)
 
 }
