@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"mycinediarybackend/config"
 	"mycinediarybackend/database"
 	"mycinediarybackend/routes"
@@ -10,22 +11,17 @@ import (
 )
 
 func main() {
-	// Load config
+
 	config.Load()
 
-	// Connect to database
-	database.Connect(config.GetEnv("DATABASE_URL", ""))
+	database.Connect()
+	defer database.DB.Close(context.Background())
 
-	// Create Echo instance
 	e := echo.New()
-
-	// Middlewares
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	// Routes
 	routes.RegisterRoutes(e)
 
-	// Start server
 	e.Logger.Fatal(e.Start(":8080"))
 }

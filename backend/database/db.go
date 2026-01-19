@@ -1,23 +1,29 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"log"
+	"mycinediarybackend/config"
+	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
 )
 
-var DB *sql.DB
+var DB *pgx.Conn
 
-func Connect(dsn string) {
-	db, err := sql.Open("postgres", dsn)
+func Connect() {
+	config.Load()
+	conn, err := pgx.Connect(context.Background(), config.GetEnv("DATABASE_URL", os.Getenv("DATABASE_URL")))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
-	if err = db.Ping(); err != nil {
-		log.Fatal(err)
+	var version string
+	if err := conn.QueryRow(context.Background(), "SELECT version()").Scan(&version); err != nil {
+		log.Fatalf("Query failed: %v", err)
 	}
 
-	DB = db
+	log.Println("Connected to:", version)
+
+	DB = conn
 }

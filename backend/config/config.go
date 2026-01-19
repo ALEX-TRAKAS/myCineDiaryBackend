@@ -3,20 +3,22 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 func Load() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found")
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("No .env file found")
 	}
 }
 
 func GetEnv(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
-		return value
+		log.Printf("DATABASE_URL: %q\n", os.Getenv("DATABASE_URL"))
+		return strings.TrimSpace(value)
 	}
+
 	return defaultValue
 }
