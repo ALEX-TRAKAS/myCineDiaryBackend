@@ -1,16 +1,18 @@
 package repositories
 
 import (
+	"context"
 	"mycinediarybackend/database"
 	"mycinediarybackend/models"
 )
 
-func AddUserMovie(userMovie *models.UserMovie) error {
+func AddUserMovie(ctx context.Context, userMovie *models.UserMovie) error {
 	query := `
 		INSERT INTO user_movies (user_id, tmdb_movie_id, watched_at, rating, progress)
 		VALUES ($1, $2, $3, $4, $5)
 	`
 	_, err := database.DB.Exec(
+		ctx,
 		query,
 		userMovie.UserID,
 		userMovie.TMDBMovieID,
@@ -21,22 +23,22 @@ func AddUserMovie(userMovie *models.UserMovie) error {
 	return err
 }
 
-func RemoveUserMovie(userID uint64, tmdbMovieID int) error {
+func RemoveUserMovie(ctx context.Context, userID uint64, tmdbMovieID int) error {
 	query := `
 		DELETE FROM user_movies
 		WHERE user_id = $1 AND tmdb_movie_id = $2
 	`
-	_, err := database.DB.Exec(query, userID, tmdbMovieID)
+	_, err := database.DB.Exec(ctx, query, userID, tmdbMovieID)
 	return err
 }
 
-func GetUserMovies(userID uint64) ([]models.UserMovie, error) {
+func GetUserMovies(ctx context.Context, userID uint64) ([]models.UserMovie, error) {
 	query := `
 		SELECT user_id, tmdb_movie_id, watched_at, rating, progress
 		FROM user_movies
 		WHERE user_id = $1
 	`
-	rows, err := database.DB.Query(query, userID)
+	rows, err := database.DB.Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}

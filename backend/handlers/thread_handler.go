@@ -10,7 +10,8 @@ import (
 )
 
 func GetAllThreads(c echo.Context) error {
-	threads, err := services.GetAllThreads()
+	ctx := c.Request().Context()
+	threads, err := services.GetAllThreads(ctx)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
@@ -20,6 +21,7 @@ func GetAllThreads(c echo.Context) error {
 }
 
 func CreateThread(c echo.Context) error {
+	ctx := c.Request().Context()
 	var thread models.Thread
 	if err := c.Bind(&thread); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{
@@ -27,7 +29,7 @@ func CreateThread(c echo.Context) error {
 		})
 	}
 	thread.CreatedAt = time.Now()
-	if err := services.CreateThread(thread); err != nil {
+	if err := services.CreateThread(ctx, thread); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
 		})
@@ -36,8 +38,9 @@ func CreateThread(c echo.Context) error {
 }
 
 func GetThreadByID(c echo.Context) error {
+	ctx := c.Request().Context()
 	threadID := c.Param("id")
-	thread, err := services.GetThreadByID(threadID)
+	thread, err := services.GetThreadByID(ctx, threadID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
@@ -47,8 +50,9 @@ func GetThreadByID(c echo.Context) error {
 }
 
 func DeleteThread(c echo.Context) error {
+	ctx := c.Request().Context()
 	threadID := c.Param("id")
-	if err := services.DeleteThread(threadID); err != nil {
+	if err := services.DeleteThread(ctx, threadID); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
 		})

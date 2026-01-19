@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 
+	"mycinediarybackend/middleware"
 	"mycinediarybackend/models"
 	"mycinediarybackend/services"
 
@@ -11,13 +12,19 @@ import (
 )
 
 func AddUserMovie(c echo.Context) error {
+	ctx := c.Request().Context()
+	authUserID, err := middleware.AuthGetUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
 	var userMovie models.UserMovie
 	if err := c.Bind(&userMovie); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"error": "Invalid request body",
 		})
 	}
-	if err := services.AddUserMovie(&userMovie); err != nil {
+	userMovie.UserID = authUserID
+	if err := services.AddUserMovie(ctx, &userMovie); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
 		})
@@ -26,16 +33,18 @@ func AddUserMovie(c echo.Context) error {
 }
 
 func RemoveUserMovie(c echo.Context) error {
-	var req struct {
-		UserID      uint64 `json:"user_id"`
-		TmdbMovieID int    `json:"tmdb_movie_id"`
+	ctx := c.Request().Context()
+	authUserID, err := middleware.AuthGetUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
-	if err := c.Bind(&req); err != nil {
+	tmdbMovieID, err := strconv.Atoi(c.Param("tmdb_id"))
+	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error": "Invalid request body",
+			"error": "Invalid tmdb id",
 		})
 	}
-	if err := services.RemoveUserMovie(req.UserID, req.TmdbMovieID); err != nil {
+	if err := services.RemoveUserMovie(ctx, authUserID, tmdbMovieID); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
 		})
@@ -46,15 +55,12 @@ func RemoveUserMovie(c echo.Context) error {
 }
 
 func GetUserMovies(c echo.Context) error {
-	userIDParam := c.Param("user_id")
-	var userID uint64
-	_, err := fmt.Sscanf(userIDParam, "%d", &userID)
+	ctx := c.Request().Context()
+	authUserID, err := middleware.AuthGetUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{
-			"error": "Invalid user ID",
-		})
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
-	userMoviesList, err := services.GetUserMovies(userID)
+	userMoviesList, err := services.GetUserMovies(ctx, authUserID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),

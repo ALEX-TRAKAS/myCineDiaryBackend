@@ -1,23 +1,24 @@
 package services
 
 import (
+	"context"
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 	"time"
 )
 
-func AddThreadPost(threadPost *models.ThreadPost) error {
-	return repositories.AddThreadPost(threadPost)
+func AddThreadPost(ctx context.Context, threadPost *models.ThreadPost) error {
+	return repositories.AddThreadPost(ctx, threadPost)
 }
 
-func RemoveThreadPost(threadPostID uint64) error {
-	return repositories.RemoveThreadPost(threadPostID)
+func RemoveThreadPost(ctx context.Context, threadPostID uint64) error {
+	return repositories.RemoveThreadPost(ctx, threadPostID)
 }
 
-func GetThreadPostsByThreadID(threadID uint64) ([]models.ThreadPost, error) {
-	return repositories.GetThreadPostsByThreadID(threadID)
+func GetThreadPostsByThreadID(ctx context.Context, threadID uint64) ([]models.ThreadPost, error) {
+	return repositories.GetThreadPostsByThreadID(ctx, threadID)
 }
 
-func UpdateThreadPostBody(threadPostID uint64, newBody string, editedAt time.Time) error {
-	return repositories.UpdateThreadPostBody(threadPostID, newBody, editedAt)
+func UpdateThreadPostBody(ctx context.Context, threadPostID uint64, newBody string, editedAt time.Time) error {
+	return repositories.UpdateThreadPostBody(ctx, threadPostID, newBody, editedAt)
 }

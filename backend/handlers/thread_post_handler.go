@@ -11,11 +11,12 @@ import (
 )
 
 func CreateThreadPost(c echo.Context) error {
+	ctx := c.Request().Context()
 	var threadPost models.ThreadPost
 	if err := c.Bind(&threadPost); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
-	err := services.AddThreadPost(&threadPost)
+	err := services.AddThreadPost(ctx, &threadPost)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create thread post"})
 	}
@@ -23,11 +24,12 @@ func CreateThreadPost(c echo.Context) error {
 }
 
 func DeleteThreadPost(c echo.Context) error {
+	ctx := c.Request().Context()
 	threadPostID, err := utils.ParseUintParam(c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid thread post ID"})
 	}
-	err = services.RemoveThreadPost(threadPostID)
+	err = services.RemoveThreadPost(ctx, threadPostID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to delete thread post"})
 	}
@@ -35,11 +37,12 @@ func DeleteThreadPost(c echo.Context) error {
 }
 
 func GetThreadPosts(c echo.Context) error {
+	ctx := c.Request().Context()
 	threadID, err := utils.ParseUintParam(c, "thread_id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid thread ID"})
 	}
-	threadPosts, err := services.GetThreadPostsByThreadID(threadID)
+	threadPosts, err := services.GetThreadPostsByThreadID(ctx, threadID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve thread posts"})
 	}
@@ -47,6 +50,7 @@ func GetThreadPosts(c echo.Context) error {
 }
 
 func UpdateThreadPost(c echo.Context) error {
+	ctx := c.Request().Context()
 	threadPostID, err := utils.ParseUintParam(c, "id")
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid thread post ID"})
@@ -57,7 +61,7 @@ func UpdateThreadPost(c echo.Context) error {
 	if err := c.Bind(&updateData); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request"})
 	}
-	err = services.UpdateThreadPostBody(threadPostID, updateData.Body, time.Now().UTC())
+	err = services.UpdateThreadPostBody(ctx, threadPostID, updateData.Body, time.Now().UTC())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update thread post"})
 	}

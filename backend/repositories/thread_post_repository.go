@@ -1,17 +1,19 @@
 package repositories
 
 import (
+	"context"
 	"mycinediarybackend/database"
 	"mycinediarybackend/models"
 	"time"
 )
 
-func AddThreadPost(threadPost *models.ThreadPost) error {
+func AddThreadPost(ctx context.Context, threadPost *models.ThreadPost) error {
 	query := `
 		INSERT INTO thread_posts (thread_id, user_id, Body, created_at)
 		VALUES ($1, $2, $3, $4)
 	`
 	_, err := database.DB.Exec(
+		ctx,
 		query,
 		threadPost.ThreadID,
 		threadPost.UserID,
@@ -20,24 +22,25 @@ func AddThreadPost(threadPost *models.ThreadPost) error {
 	)
 	return err
 }
-func RemoveThreadPost(threadPostID uint64) error {
+
+func RemoveThreadPost(ctx context.Context, threadPostID uint64) error {
 	query := `
 		UPDATE thread_posts
 		SET is_deleted = TRUE
 		WHERE id = $1
 	`
-	_, err := database.DB.Exec(query, threadPostID)
+	_, err := database.DB.Exec(ctx, query, threadPostID)
 	return err
 }
 
-func GetThreadPostsByThreadID(threadID uint64) ([]models.ThreadPost, error) {
+func GetThreadPostsByThreadID(ctx context.Context, threadID uint64) ([]models.ThreadPost, error) {
 	query := `
 		SELECT id, thread_id, user_id, body, like_count, is_deleted, created_at, edited_at
 		FROM thread_posts
 		WHERE thread_id = $1 AND is_deleted = FALSE
 		ORDER BY created_at ASC
 	`
-	rows, err := database.DB.Query(query, threadID)
+	rows, err := database.DB.Query(ctx, query, threadID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +66,12 @@ func GetThreadPostsByThreadID(threadID uint64) ([]models.ThreadPost, error) {
 	return threadPosts, nil
 }
 
-func UpdateThreadPostBody(threadPostID uint64, newBody string, editedAt time.Time) error {
+func UpdateThreadPostBody(ctx context.Context, threadPostID uint64, newBody string, editedAt time.Time) error {
 	query := `
 		UPDATE thread_posts
 		SET body = $1, edited_at = $2
 		WHERE id = $3
 	`
-	_, err := database.DB.Exec(query, newBody, editedAt, threadPostID)
+	_, err := database.DB.Exec(ctx, query, newBody, editedAt, threadPostID)
 	return err
 }

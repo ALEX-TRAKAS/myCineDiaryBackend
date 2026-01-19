@@ -1,16 +1,18 @@
 package repositories
 
 import (
+	"context"
 	"mycinediarybackend/database"
 	"mycinediarybackend/models"
 )
 
-func AddUserSeries(userSeries *models.UserSeries) error {
+func AddUserSeries(ctx context.Context, userSeries *models.UserSeries) error {
 	query := `
 		INSERT INTO user_series (user_id, tmdb_series_id, watched_at, rating, progress)
 		VALUES ($1, $2, $3, $4, $5) `
 
 	_, err := database.DB.Exec(
+		ctx,
 		query,
 		userSeries.UserID,
 		userSeries.TMDBSeriesID,
@@ -21,22 +23,22 @@ func AddUserSeries(userSeries *models.UserSeries) error {
 	return err
 }
 
-func RemoveUserSeries(userID uint64, tmdbSeriesID int) error {
+func RemoveUserSeries(ctx context.Context, userID uint64, tmdbSeriesID int) error {
 	query := `
 		DELETE FROM user_series
 		WHERE user_id = $1 AND tmdb_series_id = $2
 	`
-	_, err := database.DB.Exec(query, userID, tmdbSeriesID)
+	_, err := database.DB.Exec(ctx, query, userID, tmdbSeriesID)
 	return err
 }
 
-func GetUserSeries(userID uint64) ([]models.UserSeries, error) {
+func GetUserSeries(ctx context.Context, userID uint64) ([]models.UserSeries, error) {
 	query := `
 		SELECT user_id, tmdb_series_id, watched_at, rating, progress		
 		FROM user_series
 		WHERE user_id = $1
 	`
-	rows, err := database.DB.Query(query, userID)
+	rows, err := database.DB.Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
 

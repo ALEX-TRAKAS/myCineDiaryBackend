@@ -1,18 +1,19 @@
 package services
 
 import (
+	"context"
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 )
 
-func AddUserSeries(userSeries *models.UserSeries) error {
-	return repositories.AddUserSeries(userSeries)
+func AddUserSeries(ctx context.Context, userSeries *models.UserSeries) error {
+	return repositories.AddUserSeries(ctx, userSeries)
 }
 
-func RemoveUserSeries(userID uint64, tmdbSeriesID int) error {
-	return repositories.RemoveUserSeries(userID, tmdbSeriesID)
+func RemoveUserSeries(ctx context.Context, userID uint64, tmdbSeriesID int) error {
+	return repositories.RemoveUserSeries(ctx, userID, tmdbSeriesID)
 }
 
-func GetUserSeries(userID uint64) ([]models.UserSeries, error) {
-	return repositories.GetUserSeries(userID)
+func GetUserSeries(ctx context.Context, userID uint64) ([]models.UserSeries, error) {
+	return repositories.GetUserSeries(ctx, userID)
 }

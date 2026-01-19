@@ -1,18 +1,19 @@
 package services
 
 import (
+	"context"
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 )
 
-func AddUserMovie(userMovie *models.UserMovie) error {
-	return repositories.AddUserMovie(userMovie)
+func AddUserMovie(ctx context.Context, userMovie *models.UserMovie) error {
+	return repositories.AddUserMovie(ctx, userMovie)
 }
 
-func RemoveUserMovie(userID uint64, tmdbMovieID int) error {
-	return repositories.RemoveUserMovie(userID, tmdbMovieID)
+func RemoveUserMovie(ctx context.Context, userID uint64, tmdbMovieID int) error {
+	return repositories.RemoveUserMovie(ctx, userID, tmdbMovieID)
 }
 
-func GetUserMovies(userID uint64) ([]models.UserMovie, error) {
-	return repositories.GetUserMovies(userID)
+func GetUserMovies(ctx context.Context, userID uint64) ([]models.UserMovie, error) {
+	return repositories.GetUserMovies(ctx, userID)
 }
