@@ -3,36 +3,30 @@ package services
 import (
 	"context"
 	"errors"
-
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 	"mycinediarybackend/utils"
 )
 
-func Register(ctx context.Context, username, email, password string) error {
-	hash, err := utils.HashPassword(password)
-	if err != nil {
-		return err
-	}
+func Register(ctx context.Context, username, email, password string) (*models.User, error) {
+	hashed, _ := utils.HashPassword(password)
 
 	user := &models.User{
 		Username:     username,
 		Email:        email,
-		PasswordHash: hash,
+		PasswordHash: hashed,
 	}
 
-	_, err = repositories.CreateUser(ctx, user)
-	if err != nil {
-		return err
+	if err := repositories.CreateUser(ctx, user); err != nil {
+		return nil, err
 	}
-
-	return nil
+	return user, nil
 }
 
 func Login(ctx context.Context, email, password string) (*models.User, error) {
 	user, err := repositories.GetUserByEmail(ctx, email)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid credentials")
 	}
 
 	if !utils.CheckPassword(password, user.PasswordHash) {

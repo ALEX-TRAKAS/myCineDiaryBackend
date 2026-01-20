@@ -18,6 +18,10 @@ func JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "missing auth token"})
 		}
 
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid auth header format"})
+		}
+
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenStr == "" {
 			return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid token"})

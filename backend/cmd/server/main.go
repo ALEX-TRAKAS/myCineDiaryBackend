@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"mycinediarybackend/config"
+	"mycinediarybackend/cron"
 	"mycinediarybackend/database"
 	"mycinediarybackend/routes"
 
@@ -16,6 +17,8 @@ func main() {
 
 	database.Connect()
 	defer database.DB.Close(context.Background())
+
+	cron.StartTokenCleanupJob()
 
 	e := echo.New()
 	e.Use(middleware.Recover())

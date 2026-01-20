@@ -9,21 +9,15 @@ import (
 	"mycinediarybackend/models"
 )
 
-func CreateUser(ctx context.Context, user *models.User) (*models.User, error) {
+func CreateUser(ctx context.Context, user *models.User) error {
 	query := `
-        INSERT INTO users (email, username, password_hash)
+        INSERT INTO users (username, email, password_hash)
         VALUES ($1, $2, $3)
         RETURNING id, created_at
     `
-
-	err := database.DB.QueryRow(ctx, query, user.Email, user.Username, user.PasswordHash).
+	return database.DB.QueryRow(ctx, query, user.Username, user.Email, user.PasswordHash).
 		Scan(&user.ID, &user.CreatedAt)
 
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
 }
 
 func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
