@@ -16,7 +16,7 @@ func RegisterRoutes(e *echo.Echo) {
 	// AUTH routes (public)
 	api.POST("/register", authHandler.Register)
 	api.POST("/login", authHandler.Login)
-	api.POST("/refresh", authHandler.Refresh)
+	api.POST("/refresh", authHandler.RefreshToken)
 
 	// USER routes
 	api.GET("/users/:id", userHandler.GetUser)

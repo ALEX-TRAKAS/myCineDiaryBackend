@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func SaveRefreshToken(ctx context.Context, userID uint64, sha string, hash string, familyID string, expiresAt time.Time) error {
+func SaveRefreshToken(ctx context.Context, userID uint64, sha string, hash string, familyID string, ip string, deviceID string, expiresAt time.Time) error {
 	query := `
-        INSERT INTO refresh_tokens (user_id, token_sha, token_hash, family_id, expires_at)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO refresh_tokens (user_id, token_sha, token_hash, family_id, created_ip, device_id, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
     `
-	_, err := database.DB.Exec(ctx, query, userID, sha, hash, familyID, expiresAt)
+	_, err := database.DB.Exec(ctx, query, userID, sha, hash, familyID, ip, deviceID, expiresAt)
 	return err
 }
 
@@ -56,5 +56,16 @@ func RevokeAllRefreshTokensForUser(ctx context.Context, userID uint64) error {
 func CleanupExpiredTokens(ctx context.Context) error {
 	query := `DELETE FROM refresh_tokens WHERE expires_at < NOW()`
 	_, err := database.DB.Exec(ctx, query)
+	return err
+}
+
+func UpdateRefreshTokenUsage(ctx context.Context, id uint64, ip string) error {
+	query := `
+        UPDATE refresh_tokens
+        SET last_used_ip = $1,
+            last_used_at = NOW()
+        WHERE id = $2
+    `
+	_, err := database.DB.Exec(ctx, query, ip, id)
 	return err
 }

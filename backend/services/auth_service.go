@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-func CreateRefreshToken(ctx context.Context, userID uint64, familyID string) (string, error) {
+func CreateRefreshToken(ctx context.Context, userID uint64, familyID string, ip string, deviceID string) (string, error) {
 	token, _ := utils.GenerateRefreshToken()
 	hash, _ := utils.HashToken(token)
 	sha := utils.SHA256(token)
 
-	err := repositories.SaveRefreshToken(ctx, userID, sha, hash, familyID, time.Now().Add(7*24*time.Hour))
+	err := repositories.SaveRefreshToken(ctx, userID, sha, hash, familyID, ip, deviceID, time.Now().Add(7*24*time.Hour))
 	if err != nil {
 		return "", err
 	}

@@ -42,15 +42,22 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request"})
 	}
 
+	ip := c.RealIP()
+	deviceID := c.Request().Header.Get("X-Device-ID")
+	if deviceID == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "missing device id",
+		})
+	}
+
 	user, err := services.Login(ctx, req.Email, req.Password)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid credentials"})
 	}
 
 	accessToken, _ := utils.GenerateJWT(user.ID)
-
 	familyID := uuid.New().String()
-	refreshToken, _ := services.CreateRefreshToken(ctx, user.ID, familyID)
+	refreshToken, err := services.CreateRefreshToken(ctx, user.ID, familyID, ip, deviceID)
 
 	c.SetCookie(&http.Cookie{
 		Name:     "refresh_token",
@@ -64,7 +71,7 @@ func (h *AuthHandler) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"access_token": accessToken})
 }
 
-func (h *AuthHandler) Refresh(c echo.Context) error {
+func (h *AuthHandler) RefreshToken(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	cookie, err := c.Cookie("refresh_token")
@@ -73,14 +80,36 @@ func (h *AuthHandler) Refresh(c echo.Context) error {
 	}
 
 	token := cookie.Value
+
+	currentIP := c.RealIP()
+
 	stored, err := services.ValidateRefreshToken(ctx, token)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "invalid refresh token"})
 	}
 
+	if stored.LastUsedIP != "" && stored.LastUsedIP != currentIP {
+		_ = repositories.RevokeFamilyTokensByFamilyID(ctx, stored.FamilyID)
+
+		return c.JSON(http.StatusUnauthorized, echo.Map{
+			"error": "session compromised, please login again",
+		})
+	}
 	_ = repositories.RevokeRefreshTokenByID(ctx, stored.ID)
 
-	newToken, _ := services.CreateRefreshToken(ctx, stored.UserID, stored.FamilyID)
+	newToken, err := services.CreateRefreshToken(
+		ctx,
+		stored.UserID,
+		stored.FamilyID,
+		stored.CreatedIP,
+		stored.DeviceID,
+	)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": "failed to rotate refresh token"})
+	}
+
+	_ = repositories.UpdateRefreshTokenUsage(ctx, stored.ID, currentIP)
+
 	accessToken, _ := utils.GenerateJWT(stored.UserID)
 
 	c.SetCookie(&http.Cookie{
