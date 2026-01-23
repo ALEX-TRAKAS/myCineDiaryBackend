@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"mycinediarybackend/config"
 	"mycinediarybackend/cron"
 	"mycinediarybackend/database"
@@ -16,7 +15,7 @@ func main() {
 	config.Load()
 
 	database.Connect()
-	defer database.DB.Close(context.Background())
+	defer database.DB.Close()
 
 	cron.StartTokenCleanupJob()
 
