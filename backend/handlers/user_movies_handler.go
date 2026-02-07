@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -13,22 +14,48 @@ import (
 
 func AddUserMovie(c echo.Context) error {
 	ctx := c.Request().Context()
+
 	authUserID, err := middleware.AuthGetUserID(c)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+		return c.JSON(http.StatusUnauthorized, echo.Map{
+			"error": "unauthorized",
+		})
 	}
-	var userMovie models.UserMovie
-	if err := c.Bind(&userMovie); err != nil {
+
+	type AddUserMovieRequest struct {
+		TMDBMovieID int `json:"tmdb_movie_id"`
+	}
+
+	var req AddUserMovieRequest
+	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{
 			"error": "Invalid request body",
 		})
 	}
-	userMovie.UserID = authUserID
+
+	if req.TMDBMovieID == 0 {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "tmdb_movie_id is required",
+		})
+	}
+
+	userMovie := models.UserMovie{
+		UserID:      authUserID,
+		TMDBMovieID: req.TMDBMovieID,
+	}
+
+	log.Printf(
+		"AddUserMovie: user=%d tmdb_movie_id=%d\n",
+		authUserID,
+		req.TMDBMovieID,
+	)
+
 	if err := services.AddUserMovie(ctx, &userMovie); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
 		})
 	}
+
 	return c.JSON(http.StatusCreated, userMovie)
 }
 
