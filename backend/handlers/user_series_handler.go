@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"mycinediarybackend/middleware"
 	"mycinediarybackend/models"
 	"mycinediarybackend/services"
@@ -16,11 +17,32 @@ func AddUserSeries(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
-	var userSeries models.UserSeries
-	if err := c.Bind(&userSeries); err != nil {
+
+	type AddUserSeriesRequest struct {
+		TMDBSeriesID int `json:"tmdb_series_id"`
+	}
+
+	var req AddUserSeriesRequest
+	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request body"})
 	}
-	userSeries.UserID = authUserID
+	if req.TMDBSeriesID == 0 {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "tmdb_series_id is required",
+		})
+	}
+
+	userSeries := models.UserSeries{
+		UserID:       authUserID,
+		TMDBSeriesID: req.TMDBSeriesID,
+	}
+
+	log.Printf(
+		"AddUserSeries: user=%d tmdb_series_id=%d\n",
+		authUserID,
+		req.TMDBSeriesID,
+	)
+
 	if err := services.AddUserSeries(ctx, &userSeries); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
