@@ -87,7 +87,22 @@ func GetUserMovies(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
-	userMoviesList, err := services.GetUserMovies(ctx, authUserID)
+
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error": err.Error(),
+		})
+	}
+
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error": err.Error(),
+		})
+	}
+
+	userMoviesList, err := services.GetUserMovies(ctx, authUserID, page, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{
 			"error": err.Error(),
