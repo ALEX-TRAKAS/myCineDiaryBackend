@@ -32,33 +32,65 @@ func RemoveUserSeries(ctx context.Context, userID uint64, tmdbSeriesID int) erro
 	return err
 }
 
-func GetUserSeries(ctx context.Context, userID uint64) ([]models.UserSeries, error) {
-	query := `
-		SELECT user_id, tmdb_series_id, watched_at, rating, progress		
+func GetUserSeries(ctx context.Context, userID uint64, page int, limit int) (*models.PaginatedUserSeries, error) {
+
+	if page < 1 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 12
+	}
+
+	offset := (page - 1) * limit
+
+	var totalItems int
+	countQuery := `
+		SELECT COUNT(*)
 		FROM user_series
 		WHERE user_id = $1
 	`
-	rows, err := database.DB.Query(ctx, query, userID)
+	err := database.DB.QueryRow(ctx, countQuery, userID).Scan(&totalItems)
 	if err != nil {
 		return nil, err
+	}
 
+	query := `
+		SELECT user_id, tmdb_series_id, watched_at, rating, progress
+		FROM user_series
+		WHERE user_id = $1
+		ORDER BY watched_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	rows, err := database.DB.Query(ctx, query, userID, limit, offset)
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
-	var userSeriesList []models.UserSeries
+
+	var userSeries []models.UserSeries
+
 	for rows.Next() {
-		var userSeries models.UserSeries
+		var userSeriesItem models.UserSeries
 		err := rows.Scan(
-			&userSeries.UserID,
-			&userSeries.TMDBSeriesID,
-			&userSeries.WatchedAt,
-			&userSeries.Rating,
-			&userSeries.Progress,
+			&userSeriesItem.UserID,
+			&userSeriesItem.TMDBSeriesID,
+			&userSeriesItem.WatchedAt,
+			&userSeriesItem.Rating,
+			&userSeriesItem.Progress,
 		)
 		if err != nil {
 			return nil, err
 		}
-		userSeriesList = append(userSeriesList, userSeries)
+		userSeries = append(userSeries, userSeriesItem)
 	}
 
-	return userSeriesList, nil
+	totalPages := (totalItems + limit - 1) / limit
+
+	return &models.PaginatedUserSeries{
+		Series:      userSeries,
+		CurrentPage: page,
+		TotalPages:  totalPages,
+		TotalItems:  totalItems,
+	}, nil
 }

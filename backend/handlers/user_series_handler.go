@@ -73,10 +73,22 @@ func GetUserSeries(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
 	}
-	userSeriesList, err := services.GetUserSeries(ctx, authUserID)
+	page, err := strconv.Atoi(c.QueryParam("page"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error": err.Error(),
+		})
+	}
+
+	limit, err := strconv.Atoi(c.QueryParam("limit"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{
+			"error": err.Error(),
+		})
+	}
+	userSeriesList, err := services.GetUserSeries(ctx, authUserID, page, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
-
 	return c.JSON(http.StatusOK, userSeriesList)
 }

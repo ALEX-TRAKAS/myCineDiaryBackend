@@ -14,6 +14,10 @@ func RemoveUserSeries(ctx context.Context, userID uint64, tmdbSeriesID int) erro
 	return repositories.RemoveUserSeries(ctx, userID, tmdbSeriesID)
 }
 
-func GetUserSeries(ctx context.Context, userID uint64) ([]models.UserSeries, error) {
-	return repositories.GetUserSeries(ctx, userID)
+func GetUserSeries(ctx context.Context, userID uint64, page int, limit int) ([]models.UserSeries, error) {
+	paginatedUserSeries, err := repositories.GetUserSeries(ctx, userID, page, limit)
+	if err != nil {
+		return nil, err
+	}
+	return paginatedUserSeries.Series, nil
 }

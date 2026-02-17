@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type UserMovie struct {
 	UserID      uint64    `db:"user_id"`
@@ -8,4 +10,11 @@ type UserMovie struct {
 	WatchedAt   time.Time `db:"watched_at"`
 	Rating      *int      `db:"rating"`
 	Progress    *int      `db:"progress"`
+}
+
+type PaginatedUserMovies struct {
+	Movies      []UserMovie
+	CurrentPage int
+	TotalPages  int
+	TotalItems  int
 }

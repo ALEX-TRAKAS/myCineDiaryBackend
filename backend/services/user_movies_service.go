@@ -14,6 +14,10 @@ func RemoveUserMovie(ctx context.Context, userID uint64, tmdbMovieID int) error 
 	return repositories.RemoveUserMovie(ctx, userID, tmdbMovieID)
 }
 
-func GetUserMovies(ctx context.Context, userID uint64) ([]models.UserMovie, error) {
-	return repositories.GetUserMovies(ctx, userID)
+func GetUserMovies(ctx context.Context, userID uint64, page int, limit int) ([]models.UserMovie, error) {
+	paginatedUserMovies, err := repositories.GetUserMovies(ctx, userID, page, limit)
+	if err != nil {
+		return nil, err
+	}
+	return paginatedUserMovies.Movies, nil
 }

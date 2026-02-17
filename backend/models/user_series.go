@@ -9,3 +9,10 @@ type UserSeries struct {
 	Rating       *int      `db:"rating"`
 	Progress     *int      `db:"progress"`
 }
+
+type PaginatedUserSeries struct {
+	Series      []UserSeries
+	CurrentPage int
+	TotalPages  int
+	TotalItems  int
+}

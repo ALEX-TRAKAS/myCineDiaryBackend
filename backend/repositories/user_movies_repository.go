@@ -32,19 +32,44 @@ func RemoveUserMovie(ctx context.Context, userID uint64, tmdbMovieID int) error 
 	return err
 }
 
-func GetUserMovies(ctx context.Context, userID uint64) ([]models.UserMovie, error) {
+func GetUserMovies(ctx context.Context, userID uint64, page int, limit int) (*models.PaginatedUserMovies, error) {
+
+	if page < 1 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 12
+	}
+
+	offset := (page - 1) * limit
+
+	var totalItems int
+	countQuery := `
+		SELECT COUNT(*)
+		FROM user_movies
+		WHERE user_id = $1
+	`
+	err := database.DB.QueryRow(ctx, countQuery, userID).Scan(&totalItems)
+	if err != nil {
+		return nil, err
+	}
+
 	query := `
 		SELECT user_id, tmdb_movie_id, watched_at, rating, progress
 		FROM user_movies
 		WHERE user_id = $1
+		ORDER BY watched_at DESC
+		LIMIT $2 OFFSET $3
 	`
-	rows, err := database.DB.Query(ctx, query, userID)
+
+	rows, err := database.DB.Query(ctx, query, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var userMovies []models.UserMovie
+
 	for rows.Next() {
 		var userMovie models.UserMovie
 		err := rows.Scan(
@@ -60,5 +85,12 @@ func GetUserMovies(ctx context.Context, userID uint64) ([]models.UserMovie, erro
 		userMovies = append(userMovies, userMovie)
 	}
 
-	return userMovies, nil
+	totalPages := (totalItems + limit - 1) / limit
+
+	return &models.PaginatedUserMovies{
+		Movies:      userMovies,
+		CurrentPage: page,
+		TotalPages:  totalPages,
+		TotalItems:  totalItems,
+	}, nil
 }
