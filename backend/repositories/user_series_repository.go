@@ -8,14 +8,16 @@ import (
 
 func AddUserSeries(ctx context.Context, userSeries *models.UserSeries) error {
 	query := `
-		INSERT INTO user_series (user_id, tmdb_series_id, watched_at, rating, progress)
-		VALUES ($1, $2, $3, $4, $5) `
+		INSERT INTO user_series (user_id, tmdb_series_id, poster_path, title, watched_at, rating, progress)
+		VALUES ($1, $2, $3, $4, $5, $6, $7) `
 
 	_, err := database.DB.Exec(
 		ctx,
 		query,
 		userSeries.UserID,
 		userSeries.TMDBSeriesID,
+		userSeries.PosterPath,
+		userSeries.Title,
 		userSeries.WatchedAt,
 		userSeries.Rating,
 		userSeries.Progress,
@@ -55,7 +57,7 @@ func GetUserSeries(ctx context.Context, userID uint64, page int, limit int) (*mo
 	}
 
 	query := `
-		SELECT user_id, tmdb_series_id, watched_at, rating, progress
+		SELECT user_id, tmdb_series_id, poster_path, title, watched_at, rating, progress
 		FROM user_series
 		WHERE user_id = $1
 		ORDER BY watched_at DESC
@@ -75,6 +77,8 @@ func GetUserSeries(ctx context.Context, userID uint64, page int, limit int) (*mo
 		err := rows.Scan(
 			&userSeriesItem.UserID,
 			&userSeriesItem.TMDBSeriesID,
+			&userSeriesItem.PosterPath,
+			&userSeriesItem.Title,
 			&userSeriesItem.WatchedAt,
 			&userSeriesItem.Rating,
 			&userSeriesItem.Progress,

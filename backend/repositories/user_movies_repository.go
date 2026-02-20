@@ -8,14 +8,16 @@ import (
 
 func AddUserMovie(ctx context.Context, userMovie *models.UserMovie) error {
 	query := `
-		INSERT INTO user_movies (user_id, tmdb_movie_id, watched_at, rating, progress)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO user_movies (user_id, tmdb_movie_id, poster_path, title, watched_at, rating, progress)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 	`
 	_, err := database.DB.Exec(
 		ctx,
 		query,
 		userMovie.UserID,
 		userMovie.TMDBMovieID,
+		userMovie.PosterPath,
+		userMovie.Title,
 		userMovie.WatchedAt,
 		userMovie.Rating,
 		userMovie.Progress,
@@ -55,7 +57,7 @@ func GetUserMovies(ctx context.Context, userID uint64, page int, limit int) (*mo
 	}
 
 	query := `
-		SELECT user_id, tmdb_movie_id, watched_at, rating, progress
+		SELECT user_id, tmdb_movie_id, poster_path, title, watched_at, rating, progress
 		FROM user_movies
 		WHERE user_id = $1
 		ORDER BY watched_at DESC
@@ -75,6 +77,8 @@ func GetUserMovies(ctx context.Context, userID uint64, page int, limit int) (*mo
 		err := rows.Scan(
 			&userMovie.UserID,
 			&userMovie.TMDBMovieID,
+			&userMovie.PosterPath,
+			&userMovie.Title,
 			&userMovie.WatchedAt,
 			&userMovie.Rating,
 			&userMovie.Progress,
