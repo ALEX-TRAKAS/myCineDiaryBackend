@@ -19,7 +19,9 @@ func AddUserSeries(c echo.Context) error {
 	}
 
 	type AddUserSeriesRequest struct {
-		TMDBSeriesID int `json:"tmdb_series_id"`
+		TMDBSeriesID int    `json:"tmdb_series_id"`
+		PosterPath   string `json:"poster_path"`
+		Title        string `json:"title"`
 	}
 
 	var req AddUserSeriesRequest
@@ -32,15 +34,30 @@ func AddUserSeries(c echo.Context) error {
 		})
 	}
 
+	if req.PosterPath == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "poster_path is required",
+		})
+	}
+	if req.Title == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "title is required",
+		})
+	}
+
 	userSeries := models.UserSeries{
 		UserID:       authUserID,
 		TMDBSeriesID: req.TMDBSeriesID,
+		PosterPath:   req.PosterPath,
+		Title:        req.Title,
 	}
 
 	log.Printf(
-		"AddUserSeries: user=%d tmdb_series_id=%d\n",
+		"AddUserSeries: user=%d tmdb_series_id=%d poster_path=%s title=%s\n",
 		authUserID,
 		req.TMDBSeriesID,
+		req.PosterPath,
+		req.Title,
 	)
 
 	if err := services.AddUserSeries(ctx, &userSeries); err != nil {

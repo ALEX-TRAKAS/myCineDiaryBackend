@@ -23,7 +23,9 @@ func AddUserMovie(c echo.Context) error {
 	}
 
 	type AddUserMovieRequest struct {
-		TMDBMovieID int `json:"tmdb_movie_id"`
+		TMDBMovieID int    `json:"tmdb_movie_id"`
+		PosterPath  string `json:"poster_path"`
+		Title       string `json:"title"`
 	}
 
 	var req AddUserMovieRequest
@@ -38,16 +40,30 @@ func AddUserMovie(c echo.Context) error {
 			"error": "tmdb_movie_id is required",
 		})
 	}
+	if req.PosterPath == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "poster_path is required",
+		})
+	}
+	if req.Title == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{
+			"error": "title is required",
+		})
+	}
 
 	userMovie := models.UserMovie{
 		UserID:      authUserID,
 		TMDBMovieID: req.TMDBMovieID,
+		PosterPath:  req.PosterPath,
+		Title:       req.Title,
 	}
 
 	log.Printf(
-		"AddUserMovie: user=%d tmdb_movie_id=%d\n",
+		"AddUserMovie: user=%d tmdb_movie_id=%d poster_path=%s title=%s\n",
 		authUserID,
 		req.TMDBMovieID,
+		req.PosterPath,
+		req.Title,
 	)
 
 	if err := services.AddUserMovie(ctx, &userMovie); err != nil {
