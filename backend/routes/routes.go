@@ -29,9 +29,13 @@ func RegisterRoutes(e *echo.Echo) {
 	auth.POST("/logout", authHandler.Logout)
 	auth.POST("/logout_all", authHandler.LogoutAll)
 
-	e.POST("/media", handlers.AddUserMedia)
-	e.GET("/media", handlers.GetUserMedia)
-	e.DELETE("/media/:tmdb_id", handlers.RemoveUserMedia)
+	auth.POST("/media", handlers.AddUserMedia)
+	auth.GET("/media", handlers.GetUserMedia)
+	auth.DELETE("/media/:tmdb_id", handlers.RemoveUserMedia)
+
+	auth.POST("/reviews", handlers.AddReview)
+	auth.GET("/reviews", handlers.GetReviews)
+	auth.DELETE("/reviews/:tmdb_id", handlers.RemoveReview)
 
 	auth.POST("/threads", handlers.CreateThread)
 	auth.POST("/threads/:id/posts", handlers.CreateThreadPost)
