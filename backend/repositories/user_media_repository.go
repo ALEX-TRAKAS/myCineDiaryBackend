@@ -7,23 +7,63 @@ import (
 )
 
 func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
-	query := `
+	tx, err := database.DB.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	mediaQuery := `
+		INSERT INTO media (
+			tmdb_id, media_type, title, poster_path,
+			backdrop_path, overview, release_date, created_at, updated_at
+		)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),NOW())
+		ON CONFLICT (tmdb_id, media_type) DO UPDATE
+		SET
+			title = EXCLUDED.title,
+			poster_path = EXCLUDED.poster_path,
+			backdrop_path = EXCLUDED.backdrop_path,
+			overview = EXCLUDED.overview,
+			release_date = EXCLUDED.release_date,
+			updated_at = NOW()
+	`
+
+	_, err = tx.Exec(
+		ctx,
+		mediaQuery,
+		userMedia.TMDBID,
+		userMedia.MediaType,
+		userMedia.Title,
+		userMedia.PosterPath,
+		userMedia.BackdropPath,
+		userMedia.Overview,
+		userMedia.ReleaseDate,
+	)
+	if err != nil {
+		return err
+	}
+
+	userMediaQuery := `
 		INSERT INTO user_media (
-			user_id, tmdb_id, media_type, rating, progress, notes,
+			user_id, tmdb_id, media_type,
+			rating, progress, notes,
 			status, is_favorite, created_at, updated_at
 		)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW(),NOW())
 		ON CONFLICT (user_id, tmdb_id, media_type) DO UPDATE
-		SET updated_at = NOW(),
-		    rating = EXCLUDED.rating,
-		    progress = EXCLUDED.progress,
-		    notes = EXCLUDED.notes,
-		    status = EXCLUDED.status,
-		    is_favorite = EXCLUDED.is_favorite
+		SET
+			rating = EXCLUDED.rating,
+			progress = EXCLUDED.progress,
+			notes = EXCLUDED.notes,
+			status = EXCLUDED.status,
+			is_favorite = EXCLUDED.is_favorite,
+			updated_at = NOW()
 	`
-	_, err := database.DB.Exec(
+
+	_, err = tx.Exec(
 		ctx,
-		query,
+		userMediaQuery,
 		userMedia.UserID,
 		userMedia.TMDBID,
 		userMedia.MediaType,
@@ -33,7 +73,11 @@ func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
 		userMedia.Status,
 		userMedia.IsFavorite,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func RemoveUserMedia(ctx context.Context, userID uint64, tmdbID int, mediaType string) error {
