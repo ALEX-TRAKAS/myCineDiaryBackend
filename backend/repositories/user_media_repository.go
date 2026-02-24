@@ -45,7 +45,14 @@ func RemoveUserMedia(ctx context.Context, userID uint64, tmdbID int, mediaType s
 	return err
 }
 
-func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int, limit int) (*models.PaginatedUserMedia, error) {
+func GetUserMedia(
+	ctx context.Context,
+	userID uint64,
+	mediaType string,
+	page int,
+	limit int,
+) (*models.PaginatedUserMedia, error) {
+
 	if page < 1 {
 		page = 1
 	}
@@ -58,32 +65,64 @@ func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int
 	var totalItems int
 	countQuery := `
 		SELECT COUNT(*)
-		FROM user_media
-		WHERE user_id = $1 AND ($2 IS NULL OR media_type = $2)
+		FROM user_media um
+		WHERE um.user_id = $1
+		  AND ($2 IS NULL OR um.media_type = $2)
 	`
-	err := database.DB.QueryRow(ctx, countQuery, userID, nullableString(mediaType)).Scan(&totalItems)
+
+	err := database.DB.
+		QueryRow(ctx, countQuery, userID, nullableString(mediaType)).
+		Scan(&totalItems)
 	if err != nil {
 		return nil, err
 	}
 
 	query := `
 		SELECT 
-			user_id, tmdb_id, media_type, rating, progress, notes, 
-			status, is_favorite, created_at, updated_at
-		FROM user_media
-		WHERE user_id = $1 AND ($2 IS NULL OR media_type = $2)
-		ORDER BY updated_at DESC
+			um.user_id,
+			um.tmdb_id,
+			um.media_type,
+			um.rating,
+			um.progress,
+			um.notes,
+			um.status,
+			um.is_favorite,
+			um.created_at,
+			um.updated_at,
+
+			m.title,
+			m.poster_path,
+			m.backdrop_path,
+			m.overview,
+			m.release_date
+		FROM user_media um
+		JOIN media m
+		  ON um.tmdb_id = m.tmdb_id
+		 AND um.media_type = m.media_type
+		WHERE um.user_id = $1
+		  AND ($2 IS NULL OR um.media_type = $2)
+		ORDER BY um.updated_at DESC
 		LIMIT $3 OFFSET $4
 	`
-	rows, err := database.DB.Query(ctx, query, userID, nullableString(mediaType), limit, offset)
+
+	rows, err := database.DB.Query(
+		ctx,
+		query,
+		userID,
+		nullableString(mediaType),
+		limit,
+		offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var userMediaList []models.UserMedia
+
 	for rows.Next() {
 		var m models.UserMedia
+
 		err := rows.Scan(
 			&m.UserID,
 			&m.TMDBID,
@@ -95,10 +134,17 @@ func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int
 			&m.IsFavorite,
 			&m.CreatedAt,
 			&m.UpdatedAt,
+
+			&m.Title,
+			&m.PosterPath,
+			&m.BackdropPath,
+			&m.Overview,
+			&m.ReleaseDate,
 		)
 		if err != nil {
 			return nil, err
 		}
+
 		userMediaList = append(userMediaList, m)
 	}
 
