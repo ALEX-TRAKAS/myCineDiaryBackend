@@ -89,14 +89,7 @@ func RemoveUserMedia(ctx context.Context, userID uint64, tmdbID int, mediaType s
 	return err
 }
 
-func GetUserMedia(
-	ctx context.Context,
-	userID uint64,
-	mediaType string,
-	page int,
-	limit int,
-) (*models.PaginatedUserMedia, error) {
-
+func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int, limit int) (*models.PaginatedUserMedia, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -107,16 +100,14 @@ func GetUserMedia(
 	offset := (page - 1) * limit
 
 	var totalItems int
+
 	countQuery := `
 		SELECT COUNT(*)
 		FROM user_media um
-		WHERE um.user_id = $1
-		  AND ($2 IS NULL OR um.media_type = $2)
+		WHERE um.user_id = $1 
+		AND ($2::media_type_enum IS NULL OR um.media_type = $2::media_type_enum)
 	`
-
-	err := database.DB.
-		QueryRow(ctx, countQuery, userID, nullableString(mediaType)).
-		Scan(&totalItems)
+	err := database.DB.QueryRow(ctx, countQuery, userID, nullableString(mediaType)).Scan(&totalItems)
 	if err != nil {
 		return nil, err
 	}
@@ -133,30 +124,25 @@ func GetUserMedia(
 			um.is_favorite,
 			um.created_at,
 			um.updated_at,
-
 			m.title,
 			m.poster_path,
 			m.backdrop_path,
 			m.overview,
 			m.release_date
+
 		FROM user_media um
 		JOIN media m
-		  ON um.tmdb_id = m.tmdb_id
-		 AND um.media_type = m.media_type
+			ON m.tmdb_id = um.tmdb_id
+			AND m.media_type = um.media_type
+
 		WHERE um.user_id = $1
-		  AND ($2 IS NULL OR um.media_type = $2)
+		AND ($2::media_type_enum IS NULL OR um.media_type = $2::media_type_enum)
+
 		ORDER BY um.updated_at DESC
 		LIMIT $3 OFFSET $4
 	`
 
-	rows, err := database.DB.Query(
-		ctx,
-		query,
-		userID,
-		nullableString(mediaType),
-		limit,
-		offset,
-	)
+	rows, err := database.DB.Query(ctx, query, userID, nullableString(mediaType), limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -171,6 +157,7 @@ func GetUserMedia(
 			&m.UserID,
 			&m.TMDBID,
 			&m.MediaType,
+
 			&m.Rating,
 			&m.Progress,
 			&m.Notes,

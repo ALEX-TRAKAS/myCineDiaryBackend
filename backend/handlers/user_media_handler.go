@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"mycinediarybackend/middleware"
 	"mycinediarybackend/models"
@@ -21,36 +22,63 @@ func AddUserMedia(c echo.Context) error {
 	}
 
 	type AddUserMediaRequest struct {
-		TMDBID     int                `json:"tmdb_id"`
-		MediaType  models.MediaType   `json:"media_type"`
-		Notes      string             `json:"notes,omitempty"`
-		IsFavorite bool               `json:"is_favorite,omitempty"`
-		Status     models.MediaStatus `json:"status,omitempty"`
+		TMDBID       int                `json:"tmdb_id"`
+		MediaType    models.MediaType   `json:"media_type"`
+		Title        string             `json:"title"`
+		PosterPath   string             `json:"poster_path"`
+		BackdropPath string             `json:"backdrop_path"`
+		Overview     string             `json:"overview"`
+		ReleaseDate  *time.Time         `json:"release_date"`
+		Rating       *int               `json:"rating,omitempty"`
+		Progress     *int               `json:"progress,omitempty"`
+		Notes        string             `json:"notes,omitempty"`
+		IsFavorite   bool               `json:"is_favorite,omitempty"`
+		Status       models.MediaStatus `json:"status,omitempty"`
 	}
 
 	var req AddUserMediaRequest
 	if err := c.Bind(&req); err != nil {
-		return c.JSON(http.StatusBadRequest, echo.Map{"error": "Invalid request body"})
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request body"})
 	}
 
 	if req.TMDBID == 0 {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "tmdb_id is required"})
 	}
+
+	if req.Title == "" {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "title is required"})
+	}
+
 	if req.MediaType != models.MediaTypeMovie && req.MediaType != models.MediaTypeTV {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "media_type must be 'movie' or 'tv'"})
 	}
 
-	userMedia := models.UserMedia{
-		UserID:     authUserID,
-		TMDBID:     req.TMDBID,
-		MediaType:  req.MediaType,
-		Notes:      req.Notes,
-		IsFavorite: req.IsFavorite,
-		Status:     req.Status,
+	if req.Status == "" {
+		req.Status = models.StatusWatchlist
 	}
 
-	log.Printf("AddUserMedia: user=%d tmdb_id=%d type=%s status=%s\n",
-		authUserID, req.TMDBID, req.MediaType, req.Status,
+	userMedia := models.UserMedia{
+		UserID:       authUserID,
+		TMDBID:       req.TMDBID,
+		MediaType:    req.MediaType,
+		Title:        req.Title,
+		PosterPath:   req.PosterPath,
+		BackdropPath: req.BackdropPath,
+		Overview:     req.Overview,
+		ReleaseDate:  req.ReleaseDate,
+		Rating:       req.Rating,
+		Progress:     req.Progress,
+		Notes:        req.Notes,
+		IsFavorite:   req.IsFavorite,
+		Status:       req.Status,
+	}
+
+	log.Printf(
+		"AddUserMedia: user=%d tmdb_id=%d type=%s status=%s\n",
+		authUserID,
+		req.TMDBID,
+		req.MediaType,
+		req.Status,
 	)
 
 	if err := services.AddUserMedia(ctx, &userMedia); err != nil {
