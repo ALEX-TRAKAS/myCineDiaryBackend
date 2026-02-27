@@ -12,11 +12,13 @@ func RegisterRoutes(e *echo.Echo) {
 
 	userHandler := handlers.NewUserHandler()
 	authHandler := handlers.NewAuthHandler()
+	mediaHandler := handlers.NewMediaHandler()
 
 	// AUTH routes (public)
 	api.POST("/register", authHandler.Register)
 	api.POST("/login", authHandler.Login)
 	api.POST("/refresh", authHandler.RefreshToken)
+	api.GET("/media/:tmdb_id/reviews", mediaHandler.GetMediaReviews)
 
 	// USER routes
 	api.GET("/users/:id", userHandler.GetUser)

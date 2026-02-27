@@ -79,3 +79,21 @@ func GetReviews(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, reviews)
 }
+func GetMediaReviewsPublic(c echo.Context) error {
+	ctx := c.Request().Context()
+	userID, err := middleware.AuthGetUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+	mediaType := c.QueryParam("media_type")
+
+	reviews, err := services.GetReviews(ctx, userID, page, limit, mediaType)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, reviews)
+}
