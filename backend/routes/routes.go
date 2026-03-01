@@ -33,6 +33,7 @@ func RegisterRoutes(e *echo.Echo) {
 
 	auth.POST("/media", handlers.AddUserMedia)
 	auth.GET("/media", handlers.GetUserMedia)
+	auth.GET("/media/:tmdb_id", handlers.GetUserMediaByTMDBID)
 	auth.DELETE("/media/:tmdb_id", handlers.RemoveUserMedia)
 
 	auth.POST("/reviews", handlers.AddReview)

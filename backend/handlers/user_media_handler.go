@@ -142,3 +142,27 @@ func GetUserMedia(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, userMediaList)
 }
+
+func GetUserMediaByTMDBID(c echo.Context) error {
+	ctx := c.Request().Context()
+	authUserID, err := middleware.AuthGetUserID(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, echo.Map{"error": "unauthorized"})
+	}
+	tmdbID, err := strconv.Atoi(c.Param("tmdb_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "tmdb_id not found"})
+	}
+	mediaType := models.MediaType(c.QueryParam("media_type"))
+	if mediaType != models.MediaTypeMovie && mediaType != models.MediaTypeTV {
+		return c.JSON(http.StatusBadRequest, echo.Map{"error": "media_type must be 'movie' or 'tv'"})
+	}
+	userMedia, err := services.GetUserMediaByTMDBID(ctx, authUserID, tmdbID, mediaType)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
+	}
+	if userMedia == nil {
+		return c.JSON(http.StatusNotFound, echo.Map{"error": "user media not found"})
+	}
+	return c.JSON(http.StatusOK, userMedia)
+}

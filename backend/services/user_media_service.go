@@ -21,3 +21,11 @@ func GetUserMedia(ctx context.Context, userID uint64, page, limit int, mediaType
 	}
 	return paginatedUserMedia, nil
 }
+
+func GetUserMediaByTMDBID(ctx context.Context, userID uint64, tmdbID int, mediaType models.MediaType) (*models.UserMedia, error) {
+	userMedia, err := repositories.GetUserMediaByTMDBID(ctx, userID, tmdbID, string(mediaType))
+	if err != nil {
+		return nil, err
+	}
+	return userMedia, nil
+}

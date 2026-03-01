@@ -189,6 +189,60 @@ func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int
 	}, nil
 }
 
+func GetUserMediaByTMDBID(ctx context.Context, userID uint64, tmdbID int, mediaType string) (*models.UserMedia, error) {
+	query := `
+		SELECT 
+			um.user_id,
+			um.tmdb_id,
+			um.media_type,
+			um.rating,
+			um.progress,
+			um.notes,
+			um.status,
+			um.is_favorite,
+			um.created_at,
+			um.updated_at,
+			m.title,
+			m.poster_path,
+			m.backdrop_path,
+			m.overview,
+			m.release_date
+
+		FROM user_media um
+		JOIN media m
+			ON m.tmdb_id = um.tmdb_id
+			AND m.media_type = um.media_type
+
+		WHERE um.user_id = $1 AND um.tmdb_id = $2 AND um.media_type = $3
+	`
+
+	var m models.UserMedia
+
+	err := database.DB.QueryRow(ctx, query, userID, tmdbID, mediaType).Scan(
+		&m.UserID,
+		&m.TMDBID,
+		&m.MediaType,
+
+		&m.Rating,
+		&m.Progress,
+		&m.Notes,
+		&m.Status,
+		&m.IsFavorite,
+		&m.CreatedAt,
+		&m.UpdatedAt,
+
+		&m.Title,
+		&m.PosterPath,
+		&m.BackdropPath,
+		&m.Overview,
+		&m.ReleaseDate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
+}
+
 func nullableString(s string) interface{} {
 	if s == "" {
 		return nil
