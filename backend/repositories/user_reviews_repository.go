@@ -9,20 +9,22 @@ import (
 )
 
 func AddReviewAndUpdateMedia(ctx context.Context, review *models.Review) error {
-
 	tx, err := database.DB.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback(ctx)
 
-	query := `
+	_, err = tx.Exec(ctx, `
 		INSERT INTO reviews (user_id, tmdb_id, media_type, rating, review_text, is_spoiler, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+		VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW())
 		ON CONFLICT (user_id, tmdb_id, media_type)
-		DO UPDATE SET rating = EXCLUDED.rating, review_text = EXCLUDED.review_text, is_spoiler = EXCLUDED.is_spoiler, updated_at = NOW()
-	`
-	_, err = tx.Exec(ctx, query,
+		DO UPDATE SET
+			rating = EXCLUDED.rating,
+			review_text = EXCLUDED.review_text,
+			is_spoiler = EXCLUDED.is_spoiler,
+			updated_at = NOW()
+	`,
 		review.UserID,
 		review.TMDBID,
 		review.MediaType,
@@ -34,28 +36,32 @@ func AddReviewAndUpdateMedia(ctx context.Context, review *models.Review) error {
 		return err
 	}
 
-	aggQuery := `
-		UPDATE media
-		SET average_rating = sub.avg,
-		    reviews_count = sub.count
-		FROM (
-			SELECT COALESCE(AVG(rating),0) AS avg,
-			       COUNT(*) AS count
-			FROM reviews
-			WHERE tmdb_id = $1 AND media_type = $2
-		) sub
-		WHERE media.tmdb_id = $1 AND media.media_type = $2
-	`
-	_, err = tx.Exec(ctx, aggQuery, review.TMDBID, review.MediaType)
+	_, err = tx.Exec(ctx, `
+		INSERT INTO media (tmdb_id, media_type)
+		VALUES ($1, $2)
+		ON CONFLICT (tmdb_id, media_type) DO NOTHING
+	`, review.TMDBID, review.MediaType)
 	if err != nil {
 		return err
 	}
 
-	if err := tx.Commit(ctx); err != nil {
+	_, err = tx.Exec(ctx, `
+		UPDATE media
+		SET average_rating = sub.avg,
+			reviews_count = sub.count
+		FROM (
+			SELECT COALESCE(AVG(rating),0) AS avg,
+				   COUNT(*) AS count
+			FROM reviews
+			WHERE tmdb_id = $1 AND media_type = $2
+		) sub
+		WHERE media.tmdb_id = $1 AND media.media_type = $2
+	`, review.TMDBID, review.MediaType)
+	if err != nil {
 		return err
 	}
 
-	return nil
+	return tx.Commit(ctx)
 }
 
 func RemoveReview(ctx context.Context, userID uint64, tmdbID int, mediaType string) error {
