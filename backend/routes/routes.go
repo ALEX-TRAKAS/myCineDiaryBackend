@@ -19,6 +19,7 @@ func RegisterRoutes(e *echo.Echo) {
 	api.POST("/login", authHandler.Login)
 	api.POST("/refresh", authHandler.RefreshToken)
 	api.GET("/media/:tmdb_id/reviews", mediaHandler.GetMediaReviews)
+	api.GET("/media/:tmdb_id", mediaHandler.GetMediaByTMDBID)
 
 	// USER routes
 	api.GET("/users/:id", userHandler.GetUser)
