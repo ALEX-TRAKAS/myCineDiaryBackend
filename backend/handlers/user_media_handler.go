@@ -29,6 +29,7 @@ func AddUserMedia(c echo.Context) error {
 		BackdropPath string             `json:"backdrop_path"`
 		Overview     string             `json:"overview"`
 		ReleaseDate  *time.Time         `json:"release_date"`
+		Genres       []models.Genre     `json:"genres"`
 		Rating       *int               `json:"rating,omitempty"`
 		Progress     *int               `json:"progress,omitempty"`
 		Notes        string             `json:"notes,omitempty"`
@@ -37,6 +38,7 @@ func AddUserMedia(c echo.Context) error {
 	}
 
 	var req AddUserMediaRequest
+
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{"error": "invalid request body"})
 	}
@@ -74,14 +76,14 @@ func AddUserMedia(c echo.Context) error {
 	}
 
 	log.Printf(
-		"AddUserMedia: user=%d tmdb_id=%d type=%s status=%s\n",
+		"AddUserMedia: user=%d tmdb_id=%d type=%s status=%s",
 		authUserID,
 		req.TMDBID,
 		req.MediaType,
 		req.Status,
 	)
 
-	if err := services.AddUserMedia(ctx, &userMedia); err != nil {
+	if err := services.AddUserMedia(ctx, &userMedia, req.Genres); err != nil {
 		return c.JSON(http.StatusInternalServerError, echo.Map{"error": err.Error()})
 	}
 

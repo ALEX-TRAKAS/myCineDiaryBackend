@@ -21,7 +21,8 @@ func GetMediaByTMDBID(ctx context.Context, tmdbID int, mediaType string) (*model
 			m.overview,
 			m.release_date,
 			m.average_rating,
-			m.reviews_count
+			m.reviews_count,
+			m.genres
 		FROM media m
 		WHERE m.tmdb_id = $1 AND m.media_type = $2
 	`
@@ -38,6 +39,7 @@ func GetMediaByTMDBID(ctx context.Context, tmdbID int, mediaType string) (*model
 		&m.ReleaseDate,
 		&m.AverageRating,
 		&m.ReviewsCount,
+		&m.Genres,
 	)
 
 	if err != nil {

@@ -9,6 +9,11 @@ const (
 	MediaTypeTV    MediaType = "tv"
 )
 
+type Genre struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 type Media struct {
 	ID            uint64     `json:"id"`
 	TMDBID        int        `json:"tmdb_id"`
@@ -18,6 +23,7 @@ type Media struct {
 	PosterPath    string     `json:"poster_path"`
 	BackdropPath  string     `json:"backdrop_path"`
 	ReleaseDate   *time.Time `json:"release_date,omitempty"`
+	Genres        []Genre    `json:"genres" gorm:"type:jsonb"`
 	Popularity    float64    `json:"popularity"`
 	VoteAverage   float64    `json:"vote_average"`
 	AverageRating float64    `json:"average_rating" gorm:"not null;default:0"`

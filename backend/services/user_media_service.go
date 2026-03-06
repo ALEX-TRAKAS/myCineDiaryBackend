@@ -6,8 +6,8 @@ import (
 	"mycinediarybackend/repositories"
 )
 
-func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
-	return repositories.AddUserMedia(ctx, userMedia)
+func AddUserMedia(ctx context.Context, userMedia *models.UserMedia, genres []models.Genre) error {
+	return repositories.AddUserMedia(ctx, userMedia, genres)
 }
 
 func RemoveUserMedia(ctx context.Context, userID uint64, tmdbID int, mediaType models.MediaType) error {

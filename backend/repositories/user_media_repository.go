@@ -2,11 +2,12 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
 	"mycinediarybackend/database"
 	"mycinediarybackend/models"
 )
 
-func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
+func AddUserMedia(ctx context.Context, userMedia *models.UserMedia, genres []models.Genre) error {
 	tx, err := database.DB.Begin(ctx)
 	if err != nil {
 		return err
@@ -16,9 +17,9 @@ func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
 	mediaQuery := `
 		INSERT INTO media (
 			tmdb_id, media_type, title, poster_path,
-			backdrop_path, overview, release_date, created_at, updated_at
+			backdrop_path, overview, release_date, created_at, updated_at, genres
 		)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),NOW())
+		VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),NOW(),$8)
 		ON CONFLICT (tmdb_id, media_type) DO UPDATE
 		SET
 			title = EXCLUDED.title,
@@ -26,8 +27,14 @@ func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
 			backdrop_path = EXCLUDED.backdrop_path,
 			overview = EXCLUDED.overview,
 			release_date = EXCLUDED.release_date,
-			updated_at = NOW()
+			updated_at = NOW(),
+			genres = EXCLUDED.genres
 	`
+
+	genresJSON, err := json.Marshal(genres)
+	if err != nil {
+		return err
+	}
 
 	_, err = tx.Exec(
 		ctx,
@@ -39,7 +46,9 @@ func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
 		userMedia.BackdropPath,
 		userMedia.Overview,
 		userMedia.ReleaseDate,
+		genresJSON,
 	)
+
 	if err != nil {
 		return err
 	}
@@ -73,6 +82,7 @@ func AddUserMedia(ctx context.Context, userMedia *models.UserMedia) error {
 		userMedia.Status,
 		userMedia.IsFavorite,
 	)
+
 	if err != nil {
 		return err
 	}
@@ -124,6 +134,7 @@ func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int
 			um.is_favorite,
 			um.created_at,
 			um.updated_at,
+			um.genres,
 			m.title,
 			m.poster_path,
 			m.backdrop_path,
@@ -165,6 +176,7 @@ func GetUserMedia(ctx context.Context, userID uint64, mediaType string, page int
 			&m.IsFavorite,
 			&m.CreatedAt,
 			&m.UpdatedAt,
+			&m.Genres,
 
 			&m.Title,
 			&m.PosterPath,
@@ -202,6 +214,7 @@ func GetUserMediaByTMDBID(ctx context.Context, userID uint64, tmdbID int, mediaT
 			um.is_favorite,
 			um.created_at,
 			um.updated_at,
+			um.genres,
 			m.title,
 			m.poster_path,
 			m.backdrop_path,
@@ -230,6 +243,7 @@ func GetUserMediaByTMDBID(ctx context.Context, userID uint64, tmdbID int, mediaT
 		&m.IsFavorite,
 		&m.CreatedAt,
 		&m.UpdatedAt,
+		&m.Genres,
 
 		&m.Title,
 		&m.PosterPath,

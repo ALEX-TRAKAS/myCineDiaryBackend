@@ -18,6 +18,7 @@ type UserMedia struct {
 	BackdropPath string      `json:"backdrop_path"`
 	Overview     string      `json:"overview"`
 	ReleaseDate  *time.Time  `json:"release_date,omitempty"`
+	Genres       []Genre     `json:"genres" gorm:"type:jsonb"`
 }
 
 type PaginatedUserMedia struct {
