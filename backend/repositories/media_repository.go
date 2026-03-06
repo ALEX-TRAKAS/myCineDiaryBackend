@@ -2,6 +2,10 @@ package repositories
 
 import (
 	"context"
+	"errors"
+
+	"github.com/jackc/pgx/v5"
+
 	"mycinediarybackend/database"
 	"mycinediarybackend/models"
 )
@@ -19,7 +23,7 @@ func GetMediaByTMDBID(ctx context.Context, tmdbID int, mediaType string) (*model
 			m.average_rating,
 			m.reviews_count
 		FROM media m
-		WHERE m.tmdb_id = $1 AND m.media_type = $2s
+		WHERE m.tmdb_id = $1 AND m.media_type = $2
 	`
 
 	var m models.Media
@@ -37,6 +41,9 @@ func GetMediaByTMDBID(ctx context.Context, tmdbID int, mediaType string) (*model
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
