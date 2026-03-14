@@ -43,4 +43,6 @@ func RegisterRoutes(e *echo.Echo) {
 
 	auth.POST("/threads", handlers.CreateThread)
 	auth.POST("/threads/:id/posts", handlers.CreateThreadPost)
+
+	auth.GET("/users/:id/activity", handlers.GetUserActivity)
 }
