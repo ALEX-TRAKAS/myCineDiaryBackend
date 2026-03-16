@@ -2,12 +2,31 @@ package services
 
 import (
 	"context"
+	"log"
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 )
 
 func AddReview(ctx context.Context, review *models.Review) error {
-	return repositories.AddReviewAndUpdateMedia(ctx, review)
+	if err := repositories.AddReviewAndUpdateMedia(ctx, review); err != nil {
+		return err
+	}
+
+	tmdbID := review.TMDBID
+	rating := review.Rating
+
+	if err := CreateActivity(
+		ctx,
+		review.UserID,
+		models.ActivityReviewMovie,
+		&tmdbID,
+		&rating,
+	); err != nil {
+		log.Println("Failed to create activity:", err)
+
+	}
+
+	return nil
 }
 
 func RemoveReview(ctx context.Context, userID uint64, tmdbID int, mediaType string) error {
