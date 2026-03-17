@@ -30,7 +30,7 @@ func CreateActivity(ctx context.Context, activity *models.Activity) error {
 	return err
 }
 
-func GetUserActivities(ctx context.Context, userID string, limit int) ([]models.Activity, error) {
+func GetUserActivities(ctx context.Context, userID uint64, limit int) ([]models.Activity, error) {
 
 	query := `
 		SELECT

@@ -12,7 +12,7 @@ import (
 
 func CreateActivity(
 	ctx context.Context,
-	userID string,
+	userID uint64,
 	activityType models.ActivityType,
 	movieID *int,
 	rating *int,
@@ -30,6 +30,6 @@ func CreateActivity(
 	return repositories.CreateActivity(ctx, activity)
 }
 
-func GetUserActivity(ctx context.Context, userID string) ([]models.Activity, error) {
+func GetUserActivity(ctx context.Context, userID uint64) ([]models.Activity, error) {
 	return repositories.GetUserActivities(ctx, userID, 20)
 }
