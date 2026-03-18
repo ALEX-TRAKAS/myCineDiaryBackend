@@ -13,7 +13,7 @@ const (
 )
 
 type Activity struct {
-	ID        string
+	ID        uint64
 	UserID    uint64
 	Type      ActivityType
 	MovieID   *int

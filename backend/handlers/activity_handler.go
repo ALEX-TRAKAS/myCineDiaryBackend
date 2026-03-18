@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -11,6 +12,9 @@ import (
 
 func GetUserActivity(c echo.Context) error {
 	ctx := c.Request().Context()
+
+	val := c.Get("userID")
+	log.Printf("userID raw: %v, type: %T\n", val, val)
 
 	userID, err := middleware.AuthGetUserID(c)
 	if err != nil {

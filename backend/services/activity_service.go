@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
-
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 )
@@ -19,7 +17,6 @@ func CreateActivity(
 ) error {
 
 	activity := &models.Activity{
-		ID:        uuid.New().String(),
 		UserID:    userID,
 		Type:      activityType,
 		MovieID:   movieID,
