@@ -2,12 +2,29 @@ package services
 
 import (
 	"context"
+	"log"
 	"mycinediarybackend/models"
 	"mycinediarybackend/repositories"
 )
 
 func AddUserMedia(ctx context.Context, userMedia *models.UserMedia, genres []models.Genre) error {
-	return repositories.AddUserMedia(ctx, userMedia, genres)
+	if err := repositories.AddUserMedia(ctx, userMedia, genres); err != nil {
+		return err
+	}
+
+	tmdbID := userMedia.TMDBID
+
+	if err := CreateActivity(
+		ctx,
+		userMedia.UserID,
+		models.ActivityAddWatchlist,
+		&tmdbID,
+		userMedia.Rating,
+	); err != nil {
+		log.Println("Failed to create activity:", err)
+
+	}
+	return nil
 }
 
 func RemoveUserMedia(ctx context.Context, userID uint64, tmdbID int, mediaType models.MediaType) error {
