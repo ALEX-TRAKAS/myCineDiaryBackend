@@ -10,21 +10,19 @@ import (
 func CreateActivity(ctx context.Context, activity *models.Activity) error {
 
 	query := `
-		INSERT INTO activities
-		(id, user_id, type, movie_id, series_id, rating, created_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)
-	`
+	INSERT INTO activities
+	(user_id, type, movie_id, series_id, rating)
+	VALUES ($1, $2, $3, $4, $5)
+`
 
 	_, err := database.DB.Exec(
 		ctx,
 		query,
-		activity.ID,
 		activity.UserID,
 		activity.Type,
 		activity.MovieID,
 		activity.SeriesID,
 		activity.Rating,
-		activity.CreatedAt,
 	)
 
 	return err
